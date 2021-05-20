@@ -1,0 +1,77 @@
+import pyttsx3
+import speech_recognition as sr
+import smtplib
+engine = pyttsx3.init()
+voices = engine.getProperty('voices')
+engine.setProperty('voices', voices[1].id)
+engine.setProperty('rate', 150)
+
+
+def talk(sentence):
+    engine.say(sentence)
+    print("Machine said:" + sentence)
+    engine.runAndWait()
+
+
+def take_command():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("listening...")
+        r.pause_threshold = 1
+        r.adjust_for_ambient_noise(source)
+        audio = r.listen(source)
+
+        query = ""
+        try:
+            print("recognizing...")
+            query = r.recognize_google(audio, language='en-in')
+            print(f"user said: {query}\n")
+        except Exception as e:
+            talk("say that again please...")
+            return ""
+        query = query.lower()
+        return query
+
+
+def mail():
+    s = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+
+    sender_mail_id = " your email address "
+    password = "your email password "
+    s.login(sender_mail_id, password)
+    mail_id_list = {
+        "friend 1 name": "friend 1 email address",
+        "friend 2 name": "friend 2 email address",
+        
+    }
+    talk("hello Riya whome do you want to send email ?")
+
+    while True:
+        talk(" Riya Say receiver's name.")
+        receiver = take_command()
+        if receiver in mail_id_list:
+            break
+    receiver_mail_id = mail_id_list[receiver]
+
+    subject = ""
+    while subject == "":
+        talk("What is the subject.")
+        subject = take_command()
+
+    body = ""
+    while body == "":
+        talk("what is the message")
+        body = take_command()
+
+    msg = f'Subject: {subject}\n\n{body}'
+
+    s.sendmail(sender_mail_id, receiver_mail_id, msg)
+    talk("sending mail...")
+
+    s.quit()
+
+    talk("mail sent successfully")
+
+
+if __name__ == '__main__':
+    mail()
